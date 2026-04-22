@@ -1,0 +1,56 @@
+# Default PPO training config.
+#
+# Reference: these defaults are adapted from SB3's Atari PPO settings and
+# community-reported good-enough-for-Mario values. You'll want to tune later,
+# but this should produce a PPO agent that learns 1-1 within ~2-4M steps on
+# a single GPU.
+#
+# To make an ablation, copy this file and change one or two fields.
+
+# ---- Environment ----
+env:
+  world: 1
+  stage: 1
+  version: 0
+  action_set: simple      # right_only | simple | complex
+  frame_skip: 4
+  frame_stack: 4
+  resize_shape: 84
+  reward_shaping: true
+  episodic_life: true
+
+# ---- Vectorisation ----
+vec_env:
+  n_envs: 8
+  use_subproc: true
+  base_seed: 42
+
+# ---- PPO hyperparameters ----
+# These follow the "Atari" preset in SB3 with minor tweaks for Mario.
+ppo:
+  policy: CnnPolicy
+  learning_rate: 2.5e-4
+  n_steps: 512            # rollout length per env => batch = 512 * 8 = 4096
+  batch_size: 256
+  n_epochs: 4
+  gamma: 0.9              # shorter horizon than 0.99; Mario has dense shaping reward
+  gae_lambda: 0.95
+  clip_range: 0.2
+  ent_coef: 0.01          # small entropy bonus, encourages exploration
+  vf_coef: 0.5
+  max_grad_norm: 0.5
+  verbose: 1
+
+# ---- Training ----
+train:
+  total_timesteps: 4_000_000
+  seed: 42
+  log_dir: logs/ppo_default
+  save_freq: 100_000      # checkpoint every N steps (per-env steps, i.e. wall-clock)
+  eval_freq: 50_000
+  eval_episodes: 5
+
+# ---- Eval-only settings ----
+eval:
+  deterministic: true
+  render: false

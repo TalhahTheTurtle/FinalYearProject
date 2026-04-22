@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project outputs
+logs/
+data/demos/*.npz
+data/demos/*.pkl
+*.zip
+*.gif
+*.mp4
+
+# Model checkpoints
+*.pt
+*.pth
+*.ckpt
+*.zip
+
+# TensorBoard
+events.out.tfevents.*
+
+# Keep the folders 
+!logs/.gitkeep
+!data/demos/.gitkeep
+
+# Windows NTFS alternate data streams (WSL artefact)
+*:Zone.Identifier

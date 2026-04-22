@@ -1,0 +1,35 @@
+# Core RL stack
+# gym-super-mario-bros has not been updated for gymnasium, so we stay on classic gym.
+# These versions are pinned together because the ecosystem is fragile:
+# nes-py 8.2.1 + gym-super-mario-bros 7.4.0 + gym 0.25.2 is a known-good combo.
+gym==0.21.0
+gym-super-mario-bros==7.4.0
+nes-py==8.2.1
+
+# SB3 2.x requires gymnasium, but there's a shim: we use SB3 1.8.0 which still accepts classic gym.
+# This is the main reason for these version choices.
+stable-baselines3==1.8.0
+sb3-contrib==1.8.0
+
+# Deep learning
+# For CUDA 12.1, install torch with:
+#   pip install torch==2.2.2+cu121 --index-url https://download.pytorch.org/whl/cu121
+# The line below is a CPU fallback placeholder — do NOT rely on it for training.
+torch==2.2.2
+
+# Utilities
+numpy==1.24.4
+opencv-python==4.9.0.80
+tensorboard==2.15.1
+tqdm==4.66.2
+pyyaml==6.0.1
+matplotlib==3.8.3
+pandas==2.2.1
+imageio==2.34.0
+imageio-ffmpeg==0.4.9
+
+# Optional: experiment tracking (comment out if you don't want a W&B account)
+# wandb==0.16.4
+
+# Dev
+pytest==8.1.1
