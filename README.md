@@ -56,7 +56,7 @@ Once install is done:
 
 ```bash
 # 1. Verify the env works end-to-end
-python scripts/sanity_check.py --world 1 --stage 1
+python scripts/testingEnv.py --world 1 --stage 1
 
 # This should run a random agent for up to 2000 steps on World 1-1,
 # print the final Mario state, and save a GIF to logs/sanity_check.gif.

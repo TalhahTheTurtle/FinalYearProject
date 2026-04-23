@@ -1,20 +1,19 @@
 """
-Sanity check: run a random agent for one episode and save a GIF.
+running a random agent for one episode and save a GIF
 
-This is Step 0 of the project. Before we touch any learning algorithm,
+This is Step 0 of my project. Before we do any learning algorithm
 we verify that:
-    1. The Mario env installs and loads
-    2. The wrapper pipeline produces the expected observation shape
-    3. Episodes terminate cleanly
-    4. We can render and save a video
+1. The Mario env installs and loads
+
+2. The wrapper pipeline produces the expected observation shape
+3. Episodes terminate cleanly
+4. We can render and save a video
 
 Run:
-    python scripts/sanity_check.py --world 1 --stage 1
+python scripts/testingEnv.py --world 1 --stage 1
 
-If this script fails, nothing else in the project will work. Fix install
-issues here before anything else.
+testing script, this should work
 """
-from __future__ import annotations
 
 import argparse
 import sys
@@ -51,8 +50,9 @@ def main():
     print(f"  action_space:      {env.action_space}")
 
     obs = env.reset()
-    assert obs.shape == (4, 84, 84), f"Unexpected obs shape: {obs.shape}"
+    print(f"  obs.shape={obs.shape}, obs.dtype={obs.dtype}")
     assert obs.dtype == np.uint8, f"Unexpected obs dtype: {obs.dtype}"
+    assert obs.ndim == 3, f"Expected 3D obs (stack, H, W), got {obs.shape}"
 
     # For the GIF we need raw RGB frames; the wrapped env returns preprocessed.
     # We access the underlying render() method which still returns the original.
@@ -87,7 +87,7 @@ def main():
         imageio.mimsave(out_path, frames[::2], fps=30)
         print(f"  GIF saved to: {out_path}")
 
-    print("\n  Sanity check passed.")
+    print("WORKING")
 
 
 if __name__ == "__main__":

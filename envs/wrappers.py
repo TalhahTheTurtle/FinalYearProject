@@ -176,15 +176,20 @@ class LazyFramesToArray(gym.ObservationWrapper):
 
     def __init__(self, env: gym.Env):
         super().__init__(env)
-        old_space = env.observation_space
-        # FrameStack shape is (n_stack, H, W) after GrayScale; we keep that order
-        # because SB3's NatureCNN policy expects (C, H, W).
+        old_shape = env.observation_space.shape
+        if len(old_shape) == 4 and old_shape[-1] == 1:
+            new_shape = old_shape[:-1]
+        else:
+            new_shape = old_shape
         self.observation_space = spaces.Box(
             low=0,
             high=255,
-            shape=old_space.shape,
+            shape=new_shape,
             dtype=np.uint8,
         )
 
     def observation(self, observation):
-        return np.asarray(observation, dtype=np.uint8)
+        arr = np.asarray(observation, dtype=np.uint8)
+        if arr.ndim == 4 and arr.shape[-1] == 1:
+            arr = arr.squeeze(-1)
+        return arr
