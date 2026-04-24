@@ -33,3 +33,6 @@ imageio-ffmpeg==0.4.9
 
 # Dev
 pytest==8.1.1
+
+# Demo recording (Phase 3)
+pygame==2.6.1
