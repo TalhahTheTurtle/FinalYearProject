@@ -55,28 +55,65 @@ python -c "import torch; print('CUDA available:', torch.cuda.is_available(), '| 
 Once install is done:
 
 ```bash
-# 1. Verify the env works end-to-end
-python scripts/testingEnv.py --world 1 --stage 1
+# 1. Verify the env works end-to-end (random agent)
+python scripts/testingEnv.py --world 1 --stage 1 --no-gif
 
-# This should run a random agent for up to 2000 steps on World 1-1,
-# print the final Mario state, and save a GIF to logs/sanity_check.gif.
+# 2. Smoke-test the PPO pipeline (10k steps, ~1-2 min on a 3060 Ti)
+python scripts/smoke_test_ppo.py
+
+# 3. Run the real PPO baseline (200k steps, ~20-30 min)
+python scripts/train_ppo.py --config configs/ppo_default.yaml
+
+# 4. Watch training live (in a separate terminal)
+tensorboard --logdir logs/
+
+# 5. Evaluate the trained model
+python scripts/evaluate.py --run-dir logs/ppo_default
+
+# 6. Record a video of the agent playing
+python scripts/record_run.py --run-dir logs/ppo_default --episodes 3
 ```
 
-Expected output roughly:
+## What each script does
+
+| Script | Purpose |
+|--------|---------|
+| `scripts/testingEnv.py` | Random agent, verifies env stack works. Run this first after any env change. |
+| `scripts/smoke_test_ppo.py` | 10k-step PPO run. Verifies the full training pipeline before committing to a real run. |
+| `scripts/train_ppo.py` | Main PPO training. Reads a YAML config, logs to TensorBoard, checkpoints, saves best-by-eval-return model. |
+| `scripts/evaluate.py` | Loads a trained model, runs deterministic episodes on specified levels, writes a CSV of metrics (flag reach, length, final x-position, score). |
+| `scripts/record_run.py` | Renders MP4 videos of the trained agent playing. For the report. |
+
+## Config-driven experiments
+
+Every training run is driven by a YAML config. To make an ablation, copy the default and change what you want:
+
+```bash
+cp configs/ppo_default.yaml configs/ppo_gamma99.yaml
+# edit gamma in the new file, then:
+python scripts/train_ppo.py --config configs/ppo_gamma99.yaml --run-name ppo_gamma99
+```
+
+Quick overrides without editing the YAML:
+
+```bash
+python scripts/train_ppo.py --config configs/ppo_default.yaml --timesteps 1_000_000 --run-name ppo_1M
+python scripts/train_ppo.py --config configs/ppo_default.yaml --seed 7 --run-name ppo_seedB
+```
+
+Each run produces:
 
 ```
-Building env: World 1-1, actions=simple
-  observation_space: Box(0, 255, (4, 84, 84), uint8)
-  action_space:      Discrete(7)
-
-Episode finished after 187 steps
-  total reward: -12.40
-  final info:   x_pos=421, flag_get=False, life=2
-  GIF saved to: /.../logs/sanity_check.gif
-  Sanity check passed.
+logs/<run_name>/
+├── config.yaml          # exact config used (for reproducibility)
+├── metadata.json        # git commit, system info, torch version
+├── tb/                  # TensorBoard event files
+├── ckpts/               # periodic checkpoints
+├── best/best_model.zip  # best-by-eval model (use this for evaluation)
+├── final_model.zip      # model at end of training
+├── eval.csv             # written by evaluate.py
+└── videos/              # written by record_run.py
 ```
-
-A random agent will almost never reach the flag. That's expected — the point here is just to confirm the pipeline works.
 
 ## Milestones
 
@@ -85,8 +122,8 @@ Tracking against the interim report plan.
 | # | Milestone | Status |
 |---|-----------|--------|
 | 1 | Literature review | Done (interim report) |
-| 2 | Environment setup + preprocessing | **In progress (this commit)** |
-| 3 | PPO baseline (SB3) on World 1-1 | Planned |
+| 2 | Environment setup + preprocessing | Done |
+| 3 | PPO baseline (SB3) on World 1-1 | **In progress (Phase 2 code complete, first real run pending)** |
 | 4 | Demo recording pipeline | Planned |
 | 5 | Behaviour cloning | Planned |
 | 6 | Hybrid BC→PPO training | Planned |

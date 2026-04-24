@@ -1,18 +1,21 @@
-# Default PPO training config.
+# Default PPO training config for Super Mario Bros.
 #
-# Reference: these defaults are adapted from SB3's Atari PPO settings and
-# community-reported good-enough-for-Mario values. You'll want to tune later,
-# but this should produce a PPO agent that learns 1-1 within ~2-4M steps on
-# a single GPU.
+# Defaults are adapted from SB3's Atari PPO settings with Mario-specific tweaks.
+# This config is tuned for World 1-1 on a single GPU (RTX 3060 Ti-class).
 #
-# To make an ablation, copy this file and change one or two fields.
+# To make an ablation, copy this file to configs/<name>.yaml and change the
+# fields you want. Pass with:
+#   python scripts/train_ppo.py --config configs/<name>.yaml
+
+# Human-readable name appearing in logs/<run_name>/
+run_name: ppo_default
 
 # ---- Environment ----
 env:
   world: 1
   stage: 1
   version: 0
-  action_set: simple      # right_only | simple | complex
+  action_set: simple        # right_only | simple | complex
   frame_skip: 4
   frame_stack: 4
   resize_shape: 84
@@ -26,31 +29,34 @@ vec_env:
   base_seed: 42
 
 # ---- PPO hyperparameters ----
-# These follow the "Atari" preset in SB3 with minor tweaks for Mario.
+# Mario has relatively dense reward (x-position change every step) so a shorter
+# horizon (gamma=0.9) is fine. Longer horizons tend to over-value uncertain
+# future states and destabilise early learning on this env.
 ppo:
   policy: CnnPolicy
   learning_rate: 2.5e-4
-  n_steps: 512            # rollout length per env => batch = 512 * 8 = 4096
+  n_steps: 512              # per-env rollout => batch = 512 * 8 = 4096
   batch_size: 256
   n_epochs: 4
-  gamma: 0.9              # shorter horizon than 0.99; Mario has dense shaping reward
+  gamma: 0.9
   gae_lambda: 0.95
   clip_range: 0.2
-  ent_coef: 0.01          # small entropy bonus, encourages exploration
+  ent_coef: 0.01            # entropy bonus for exploration
   vf_coef: 0.5
   max_grad_norm: 0.5
   verbose: 1
 
 # ---- Training ----
 train:
-  total_timesteps: 4_000_000
+  total_timesteps: 200_000  # short smoke run; bump to 4_000_000 for real training
   seed: 42
-  log_dir: logs/ppo_default
-  save_freq: 100_000      # checkpoint every N steps (per-env steps, i.e. wall-clock)
-  eval_freq: 50_000
+  log_dir: logs             # individual runs get logs/<run_name>/
+  save_freq: 50_000         # checkpoint every N env steps
+  eval_freq: 25_000         # evaluate every N env steps
   eval_episodes: 5
 
 # ---- Eval-only settings ----
 eval:
   deterministic: true
   render: false
+  record_video: false       # set true to save an mp4 of each eval
