@@ -1,0 +1,56 @@
+# 500k diagnostic run: after the 200k showed argmax-collapse (brittle policy),
+# we bump entropy to maintain exploration and double the training budget.
+#
+# Key changes vs ppo_default.yaml:
+#   - total_timesteps: 200k -> 500k
+#   - ent_coef: 0.01 -> 0.02 (more exploration pressure)
+#   - eval_freq: 25k -> 50k (fewer but cleaner eval points)
+#   - gamma: 0.9 -> 0.95 (longer horizon helps credit-assignment to flag)
+#
+# Run with:
+#   python scripts/train_ppo.py --config configs/ppo_500k_diag.yaml
+
+run_name: ppo_500k_diag
+
+env:
+  world: 1
+  stage: 1
+  version: 0
+  action_set: simple
+  frame_skip: 4
+  frame_stack: 4
+  resize_shape: 84
+  reward_shaping: true
+  episodic_life: true
+
+vec_env:
+  n_envs: 8
+  use_subproc: true
+  base_seed: 42
+
+ppo:
+  policy: CnnPolicy
+  learning_rate: 2.5e-4
+  n_steps: 512
+  batch_size: 256
+  n_epochs: 4
+  gamma: 0.95             # was 0.9 -- longer horizon
+  gae_lambda: 0.95
+  clip_range: 0.2
+  ent_coef: 0.02          # was 0.01 -- fight policy collapse
+  vf_coef: 0.5
+  max_grad_norm: 0.5
+  verbose: 1
+
+train:
+  total_timesteps: 500_000
+  seed: 42
+  log_dir: logs
+  save_freq: 100_000
+  eval_freq: 50_000       # 10 eval points across the run
+  eval_episodes: 10       # more episodes for a less noisy eval
+
+eval:
+  deterministic: true
+  render: false
+  record_video: false

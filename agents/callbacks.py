@@ -63,12 +63,18 @@ class MarioEvalCallback(BaseCallback):
         if self.best_model_save_path:
             self.best_model_save_path.mkdir(parents=True, exist_ok=True)
         self.best_mean_reward: float = -np.inf
+        # Track the next total-env-steps at which to run eval. Using a threshold
+        # instead of modulo ensures evals always fire even when num_timesteps
+        # increments by n_envs per rollout step and never lands exactly on a
+        # multiple of eval_freq.
+        self._next_eval_at = eval_freq
 
     def _on_step(self) -> bool:
-        # self.num_timesteps is total env steps across all parallel envs.
-        # eval_freq is interpreted the same way for consistency with SB3.
-        if self.num_timesteps == 0 or self.num_timesteps % self.eval_freq != 0:
+        if self.num_timesteps < self._next_eval_at:
             return True
+        # Advance the threshold first so a slow eval doesn't cause us to miss
+        # subsequent scheduled evals.
+        self._next_eval_at += self.eval_freq
 
         rewards, ep_lengths, flags, final_x = self._run_eval()
 

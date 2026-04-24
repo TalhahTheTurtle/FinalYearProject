@@ -143,14 +143,25 @@ def main():
             deterministic=deterministic,
         )
         # Summary for this level
+        xs = [r["final_x_pos"] for r in results]
+        rws = [r["reward"] for r in results]
+        lens = [r["length"] for r in results]
         n_flag = sum(r["flag_get"] for r in results)
-        mean_reward = sum(r["reward"] for r in results) / len(results)
-        mean_x = sum(r["final_x_pos"] for r in results) / len(results)
+        n = len(results)
+
+        import statistics as _st
+        x_stdev = _st.stdev(xs) if n > 1 else 0.0
         print(
-            f"  flag_reach={n_flag}/{len(results)} "
-            f"  mean_reward={mean_reward:+.1f} "
-            f"  mean_x={mean_x:.0f}"
+            f"  reward:   mean={_st.mean(rws):+.1f}  median={_st.median(rws):+.1f}  max={max(rws):+.1f}"
         )
+        print(
+            f"  x_pos:    mean={_st.mean(xs):.0f}  median={_st.median(xs):.0f}  "
+            f"max={max(xs)}  stdev={x_stdev:.0f}"
+        )
+        print(
+            f"  ep_len:   mean={_st.mean(lens):.0f}  max={max(lens)}"
+        )
+        print(f"  flag:     {n_flag}/{n}  ({100*n_flag/n:.0f}%)")
         all_results.extend(results)
 
     # Write CSV
