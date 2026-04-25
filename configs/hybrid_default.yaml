@@ -1,0 +1,63 @@
+# BC + PPO hybrid training config.
+#
+# Built to match ppo_500k_diag.yaml's env settings exactly so that hybrid vs
+# from-scratch comparison is apples-to-apples. The PPO hyperparameters are
+# slightly more conservative because we are *fine-tuning* a pretrained policy,
+# not exploring from scratch.
+#
+# Key differences vs ppo_500k_diag.yaml:
+#   - lr: 2.5e-4 -> 1.0e-4    (don't blow up BC init)
+#   - ent_coef: 0.02 -> 0.005 (BC starts in a sensible region; less noise needed)
+#   - clip_range: 0.2 -> 0.1  (smaller policy updates around BC starting point)
+#
+# bc_ckpt is required. Override via CLI:
+#   python scripts/train_hybrid.py --bc-ckpt logs/bc_no_class_weights/bc_model.pt
+
+run_name: hybrid_500k_v1
+
+# Path (absolute or relative to project root) to the BC .pt checkpoint to
+# transplant. You will likely override this on the CLI.
+bc_ckpt: logs/bc_no_class_weights/bc_model.pt
+
+env:
+  world: 1
+  stage: 1
+  version: 0
+  action_set: simple
+  frame_skip: 4
+  frame_stack: 4
+  resize_shape: 84
+  reward_shaping: true
+  episodic_life: true
+
+vec_env:
+  n_envs: 8
+  use_subproc: true
+  base_seed: 42
+
+ppo:
+  policy: CnnPolicy
+  learning_rate: 1.0e-4    # was 2.5e-4 -- gentler updates around BC init
+  n_steps: 512
+  batch_size: 256
+  n_epochs: 4
+  gamma: 0.95
+  gae_lambda: 0.95
+  clip_range: 0.1          # was 0.2 -- smaller policy moves
+  ent_coef: 0.005          # was 0.02 -- BC already gives directed behaviour
+  vf_coef: 0.5
+  max_grad_norm: 0.5
+  verbose: 1
+
+train:
+  total_timesteps: 500_000
+  seed: 42
+  log_dir: logs
+  save_freq: 100_000
+  eval_freq: 50_000
+  eval_episodes: 10
+
+eval:
+  deterministic: true
+  render: false
+  record_video: false
