@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import argparse
 import csv
-import statistics
 import sys
 from pathlib import Path
 
@@ -66,6 +65,7 @@ def evaluate_on_level(model, device, world, stage, env_cfg, n_episodes, determin
             "flag_get": bool(last_info.get("flag_get", False)),
             "final_x_pos": int(last_info.get("x_pos", 0)),
             "final_score": int(last_info.get("score", 0)),
+            "time_to_flag": ep_len if last_info.get("flag_get", False) else None,
         })
 
     env.close()
@@ -114,26 +114,15 @@ def main():
 
     deterministic = not args.stochastic
     all_results: list[dict] = []
+
+    from agents.metrics import summarise
+
     for (w, s) in levels:
         print(f"[play_bc] level {w}-{s}, {args.episodes} episodes (deterministic={deterministic})")
         results = evaluate_on_level(
             model, device, w, s, env_cfg, args.episodes, deterministic,
         )
-        xs = [r["final_x_pos"] for r in results]
-        rws = [r["reward"] for r in results]
-        lens = [r["length"] for r in results]
-        n_flag = sum(r["flag_get"] for r in results)
-        n = len(results)
-        x_stdev = statistics.stdev(xs) if n > 1 else 0.0
-        print(
-            f"  reward:   mean={statistics.mean(rws):+.1f}  median={statistics.median(rws):+.1f}  max={max(rws):+.1f}"
-        )
-        print(
-            f"  x_pos:    mean={statistics.mean(xs):.0f}  median={statistics.median(xs):.0f}  "
-            f"max={max(xs)}  stdev={x_stdev:.0f}"
-        )
-        print(f"  ep_len:   mean={statistics.mean(lens):.0f}  max={max(lens)}")
-        print(f"  flag:     {n_flag}/{n}  ({100*n_flag/n:.0f}%)")
+        summarise(results)
         all_results.extend(results)
 
     out_csv = Path(args.out) if args.out else (run_dir / "play_bc_eval.csv")

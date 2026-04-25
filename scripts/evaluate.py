@@ -78,6 +78,7 @@ def evaluate_on_level(
             "flag_get": bool(last_info.get("flag_get", False)),
             "final_x_pos": int(last_info.get("x_pos", 0)),
             "final_score": int(last_info.get("score", 0)),
+            "time_to_flag": ep_len if last_info.get("flag_get", False) else None,
         })
 
     env.close()
@@ -135,6 +136,8 @@ def main():
     env_cfg = cfg["env"]
     deterministic = not args.stochastic
 
+    from agents.metrics import summarise
+
     for (w, s) in levels:
         print(f"[evaluate] level {w}-{s}, {args.episodes} episodes (deterministic={deterministic})")
         results = evaluate_on_level(
@@ -142,26 +145,7 @@ def main():
             n_episodes=args.episodes,
             deterministic=deterministic,
         )
-        # Summary for this level
-        xs = [r["final_x_pos"] for r in results]
-        rws = [r["reward"] for r in results]
-        lens = [r["length"] for r in results]
-        n_flag = sum(r["flag_get"] for r in results)
-        n = len(results)
-
-        import statistics as _st
-        x_stdev = _st.stdev(xs) if n > 1 else 0.0
-        print(
-            f"  reward:   mean={_st.mean(rws):+.1f}  median={_st.median(rws):+.1f}  max={max(rws):+.1f}"
-        )
-        print(
-            f"  x_pos:    mean={_st.mean(xs):.0f}  median={_st.median(xs):.0f}  "
-            f"max={max(xs)}  stdev={x_stdev:.0f}"
-        )
-        print(
-            f"  ep_len:   mean={_st.mean(lens):.0f}  max={max(lens)}"
-        )
-        print(f"  flag:     {n_flag}/{n}  ({100*n_flag/n:.0f}%)")
+        summarise(results)
         all_results.extend(results)
 
     # Write CSV

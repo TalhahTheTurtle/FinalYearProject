@@ -84,12 +84,18 @@ class MarioEvalCallback(BaseCallback):
         mean_x = float(np.mean(final_x))
         max_x = float(np.max(final_x))
 
+        # Time-to-flag, conditional on completion. NaN if zero completions in
+        # this eval batch (TensorBoard handles NaN by not plotting that point).
+        completed_lengths = [l for l, f in zip(ep_lengths, flags) if f]
+        time_to_flag_mean = float(np.mean(completed_lengths)) if completed_lengths else float("nan")
+
         # Log to SB3's logger (which routes to TensorBoard + stdout)
         self.logger.record("eval/mean_reward", mean_reward)
         self.logger.record("eval/mean_ep_length", mean_ep_length)
         self.logger.record("eval/flag_reach_rate", flag_reach_rate)
         self.logger.record("eval/mean_x_pos", mean_x)
         self.logger.record("eval/max_x_pos", max_x)
+        self.logger.record("eval/time_to_flag_mean", time_to_flag_mean)
 
         if self.verbose >= 1:
             print(

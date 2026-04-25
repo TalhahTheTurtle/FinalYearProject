@@ -16,7 +16,7 @@ bc:
   epochs: 30                      # with early stopping, may finish sooner
   val_frac: 0.15                  # episode-level split
   early_stop_patience: 4          # stop if val_loss doesn't improve for N epochs
-  use_class_weights: true         # inverse-frequency weighting for action imbalance
+  use_class_weights: false         # inverse-frequency weighting for action imbalance
   seed: 0
   device: auto
   log_dir: logs
