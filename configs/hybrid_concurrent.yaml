@@ -1,0 +1,90 @@
+# BC + PPO concurrent training config.
+#
+# Full pipeline:
+#   1. HybridPPO is built with a BC auxiliary loss (fires every gradient step).
+#   2. BC weights are transplanted from a pre-trained checkpoint.
+#   3. Value head is warmed up (policy frozen, critic trained on returns).
+#   4. PPO trains -- every gradient update includes the annealed BC loss.
+#
+# The BC auxiliary loss starts at bc_coef_start (high, keeps policy near demos)
+# and decays linearly to bc_coef_end (low, lets PPO take over).
+#
+# Run:
+#   python scripts/train_hybrid_concurrent.py
+#   python scripts/train_hybrid_concurrent.py --bc-ckpt logs/bc_default/bc_model.pt
+
+run_name: hybrid_concurrent_v1
+
+bc_ckpt: logs/bc_default/bc_model.pt
+demo_dir: data/demos/world1_1
+
+env:
+  world: 1
+  stage: 1
+  version: 0
+  action_set: simple
+  frame_skip: 4
+  frame_stack: 4
+  resize_shape: 84
+  reward_shaping: true
+  episodic_life: true
+  # Tuned for: reaching the flag (primary) + speed (secondary). Score ignored.
+  # flag_bonus dominates the entire episode return (~1500 x_pos reward) so
+  # completing the level is always worth more than any partial-run strategy.
+  # step_penalty discourages the idling/looping that caused the x=1786 stall.
+  # The built-in clock penalty already rewards speed; step_penalty adds to it.
+  flag_bonus: 500.0     # ~10x the episode x_pos reward -- completion always wins
+  step_penalty: 0.1     # per-step idle cost; encourages constant forward progress
+  death_penalty: -15.0  # unchanged
+  stuck_threshold: 30   # steps without x_pos progress before random action override
+
+vec_env:
+  n_envs: 8
+  use_subproc: true
+  base_seed: 42
+
+# ---- BC auxiliary loss ----
+bc_aux:
+  bc_coef_start: 0.5    # weight at start of training (anchors policy near demos)
+  bc_coef_end: 0.02     # weight at end of training   (PPO takes over)
+  bc_batch_size: 256    # demo frames sampled per PPO gradient step
+
+# ---- Value-head warmup before PPO ----
+warmup:
+  n_warmup_steps: 50_000
+  rollout_size: 2048
+  minibatch_size: 256
+  n_grad_passes_per_rollout: 4
+  lr: 1.0e-3
+
+# ---- PPO hyperparameters ----
+# Slightly higher learning rate than the plain hybrid because the BC auxiliary
+# loss acts as a regulariser that prevents the policy from drifting too far.
+ppo:
+  policy: CnnPolicy
+  policy_kwargs:
+    share_features_extractor: true
+  learning_rate: 1.5e-4
+  n_steps: 512
+  batch_size: 256
+  n_epochs: 4
+  gamma: 0.99           # higher than prev -- flag reward is far in the future, needs long horizon
+  gae_lambda: 0.95
+  clip_range: 0.15
+  ent_coef: 0.03        # higher entropy = more exploration past the x=1786 stall
+  vf_coef: 0.5
+  max_grad_norm: 0.5
+  verbose: 1
+
+train:
+  total_timesteps: 1_000_000   # 1M -- longer run to let PPO explore past demo behavior
+  seed: 42
+  log_dir: logs
+  save_freq: 100_000
+  eval_freq: 50_000
+  eval_episodes: 10
+
+eval:
+  deterministic: true
+  render: false
+  record_video: false

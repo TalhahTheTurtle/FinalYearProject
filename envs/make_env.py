@@ -1,19 +1,16 @@
 """
-Factory for building Super Mario Bros environments with a consistent
-preprocessing pipeline.
+making environments with preprocessing
 
-Usage:
-    env = make_env(world=1, stage=1, action_set="simple")
-    obs = env.reset()  # shape (4, 84, 84), uint8
+make_env(world=1, stage=1,action_set = "simple")
+obs = env.reset()
 
-For PPO training you'll want a vectorised env:
-    vec = make_vec_env(n_envs=8, world=1, stage=1)
+for the PPO training ill use a vectorised env
+vec = make_vec_env(n_envs=8, world=1,stage=1)
 
-IMPORTANT: the *same* `make_env` function must be used for PPO training,
-BC training, demo recording, and evaluation. If the preprocessing differs
-between phases, observations drift and BC-pretrained weights become useless.
 
-Author: Talhah Anwar
+
+
+
 """
 from __future__ import annotations
 
@@ -27,7 +24,7 @@ from gym_super_mario_bros.actions import SIMPLE_MOVEMENT, COMPLEX_MOVEMENT, RIGH
 
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv, VecMonitor
 
-from .wrappers import SkipFrame, EpisodicLifeEnv, MarioRewardShaping, LazyFramesToArray
+from .wrappers import SkipFrame, EpisodicLifeEnv, MarioRewardShaping, LazyFramesToArray, StuckDetector
 
 
 ACTION_SETS = {
@@ -47,22 +44,33 @@ def make_env(
     resize_shape: int = 84,
     reward_shaping: bool = True,
     episodic_life: bool = True,
+    flag_bonus: float = 50.0,
+    step_penalty: float = 0.0,
+    death_penalty: float = -15.0,
+    stuck_threshold: int = 30,
     seed: Optional[int] = None,
 ) -> gym.Env:
     """
-    Build a single wrapped Super Mario Bros environment.
+    Building a single wrapped Super Mario Bros environment.
 
     Parameters
     ----------
     world, stage : which level (e.g. world=1, stage=1 -> SuperMarioBros-1-1-v0)
+
     version      : 0 = standard, 1 = downsampled, 2 = pixel, 3 = rectangle.
-                   Use 0 for training; use 3 if you want a radically simpler
+                   Use 0 for training, 3 if you want a radically simpler
                    visual input for faster prototyping.
+
     action_set   : "right_only" | "simple" | "complex"
-    frame_skip   : action-repeat factor (4 is standard)
-    frame_stack  : number of stacked frames (4 is standard, gives velocity info)
-    resize_shape : H and W after resize (84 is standard)
+
+    frame_skip   : action-repeat factor (4 because standard)
+
+    frame_stack  : number of stacked frames (4, thats the standarad
+
+    resize_shape : H and W after resize (84 because standard)
+
     reward_shaping, episodic_life : toggle wrappers for ablations
+
     seed         : integer seed (optional, for reproducibility)
     """
     if action_set not in ACTION_SETS:
@@ -79,7 +87,14 @@ def make_env(
     env = SkipFrame(env, skip=frame_skip)
     if episodic_life:
         env = EpisodicLifeEnv(env)
-    env = MarioRewardShaping(env, enabled=reward_shaping)
+    env = MarioRewardShaping(
+        env,
+        enabled=reward_shaping,
+        flag_bonus=flag_bonus,
+        step_penalty=step_penalty,
+        death_penalty=death_penalty,
+    )
+    env = StuckDetector(env, stuck_threshold=stuck_threshold)
     env = GrayScaleObservation(env, keep_dim=False)
     env = ResizeObservation(env, shape=resize_shape)
     env = FrameStack(env, num_stack=frame_stack)
@@ -91,10 +106,6 @@ def make_env(
 def _make_single_env_fn(rank: int, base_seed: int, env_kwargs: dict):
     """
     Return a zero-arg callable that builds a single wrapped Mario env.
-
-    SubprocVecEnv requires picklable zero-arg factories. Using a module-level
-    factory function (not a nested closure that captures locals) is the safe
-    pattern across Python versions and WSL.
     """
     def _init():
         return make_env(seed=base_seed + rank, **env_kwargs)
@@ -110,9 +121,7 @@ def make_vec_env(
     """
     Build a vectorised env for PPO training.
 
-    SubprocVecEnv runs each env in its own process, which is what you want
-    for PPO on CPU-bound envs like Mario. On WSL this usually works fine.
-    If you hit pickling issues, set use_subproc=False to fall back to DummyVecEnv.
+    SubprocVecEnv runs each env in its own process
     """
     fns = [
         _make_single_env_fn(rank=i, base_seed=base_seed, env_kwargs=env_kwargs)
