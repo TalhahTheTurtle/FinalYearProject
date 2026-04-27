@@ -23,6 +23,7 @@ sys.path.insert(0, str(ROOT))
 
 from stable_baselines3 import PPO
 from stable_baselines3.common.logger import configure
+from stable_baselines3.common.utils import get_schedule_fn
 
 from envs import make_vec_env
 from agents.callbacks import make_callbacks
@@ -61,6 +62,8 @@ def main():
     p.add_argument("--timesteps", type=int, default=None, help="Override train.total_timesteps")
     p.add_argument("--seed", type=int, default=None, help="Override train.seed")
     p.add_argument("--device", type=str, default="auto", help="cpu | cuda | auto")
+    p.add_argument("--resume-from", type=str, default=None, help="Path to a .zip checkpoint to fine-tune from")
+    p.add_argument("--level", type=str, default=None, help="Override level, e.g. 1-3")
     args = p.parse_args()
 
     # ---- Load config ----
@@ -72,6 +75,10 @@ def main():
         cfg["train"]["total_timesteps"] = args.timesteps
     if args.seed is not None:
         cfg["train"]["seed"] = args.seed
+    if args.level is not None:
+        w, s = args.level.split("-")
+        cfg["env"]["world"] = int(w)
+        cfg["env"]["stage"] = int(s)
 
     run_name = cfg["run_name"]
     seed = cfg["train"]["seed"]
@@ -100,13 +107,23 @@ def main():
     ppo_cfg = dict(cfg["ppo"])
     policy_str = ppo_cfg.pop("policy", "CnnPolicy")
 
-    model = PPO(
-        policy_str,
-        train_env,
-        seed=seed,
-        device=args.device,
-        **ppo_cfg,
-    )
+    if args.resume_from:
+        resume_path = Path(args.resume_from)
+        if not resume_path.is_absolute():
+            resume_path = ROOT / resume_path
+        print(f"[train_ppo] fine-tuning from {resume_path}")
+        model = PPO.load(str(resume_path), env=train_env, device=args.device)
+        model.learning_rate = get_schedule_fn(ppo_cfg.get("learning_rate", model.learning_rate))
+        model.clip_range = get_schedule_fn(ppo_cfg.get("clip_range", model.clip_range))
+        model.ent_coef = ppo_cfg.get("ent_coef", model.ent_coef)
+    else:
+        model = PPO(
+            policy_str,
+            train_env,
+            seed=seed,
+            device=args.device,
+            **ppo_cfg,
+        )
     model.set_logger(new_logger)
 
     # ---- Callbacks ----
@@ -121,9 +138,10 @@ def main():
     )
 
     # ---- Train ----
+    reset_timesteps = args.resume_from is None
     print(f"[train_ppo] starting training for {total_timesteps:,} env steps")
     try:
-        model.learn(total_timesteps=total_timesteps, callback=callbacks)
+        model.learn(total_timesteps=total_timesteps, callback=callbacks, reset_num_timesteps=reset_timesteps)
     except KeyboardInterrupt:
         print("\n[train_ppo] interrupted -- saving current model before exit")
     finally:

@@ -69,6 +69,15 @@ class MarioEvalCallback(BaseCallback):
         # multiple of eval_freq.
         self._next_eval_at = eval_freq
 
+    def _on_training_start(self) -> None:
+        # When resuming with reset_num_timesteps=False, num_timesteps is already
+        # large and _next_eval_at (initialised to eval_freq) is immediately
+        # exceeded on every step until it catches up. Align it to the next
+        # upcoming eval boundary above the current timestep.
+        if self.num_timesteps >= self._next_eval_at:
+            n = (self.num_timesteps // self.eval_freq) + 1
+            self._next_eval_at = n * self.eval_freq
+
     def _on_step(self) -> bool:
         if self.num_timesteps < self._next_eval_at:
             return True

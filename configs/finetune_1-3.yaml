@@ -1,0 +1,48 @@
+run_name: finetune_1-3
+
+env:
+  world: 1
+  stage: 3
+  version: 0
+  action_set: simple
+  frame_skip: 4
+  frame_stack: 4
+  resize_shape: 84
+  reward_shaping: true
+  episodic_life: true
+  flag_bonus: 500.0
+  step_penalty: 0.0
+  death_penalty: -15.0
+  stuck_threshold: 30
+
+vec_env:
+  n_envs: 8
+  use_subproc: true
+  base_seed: 99
+
+ppo:
+  policy: CnnPolicy
+  learning_rate: 2.5e-5   # 10x lower than default -- preserves features learned on 1-1
+  n_steps: 512
+  batch_size: 256
+  n_epochs: 4
+  gamma: 0.9
+  gae_lambda: 0.95
+  clip_range: 0.1          # tighter clip -- smaller policy updates during fine-tuning
+  ent_coef: 0.02
+  vf_coef: 0.5
+  max_grad_norm: 0.5
+  verbose: 1
+
+train:
+  total_timesteps: 1_000_000
+  seed: 99
+  log_dir: logs
+  save_freq: 100_000
+  eval_freq: 50_000
+  eval_episodes: 10
+
+eval:
+  deterministic: true
+  render: false
+  record_video: false

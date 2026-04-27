@@ -44,7 +44,7 @@ def record_episode(model, env, max_steps: int = 4000) -> tuple[list, dict]:
         # .render on the underlying NES env returns the raw RGB frame
         frame = env.render(mode="rgb_array")
         if frame is not None:
-            frames.append(frame)
+            frames.append(frame.copy())
         action, _ = model.predict(obs, deterministic=True)
         obs, _, done, info = env.step(int(action))
         last_info = info

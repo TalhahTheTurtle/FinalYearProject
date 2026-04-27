@@ -1,0 +1,14 @@
+run_name: bc_1-3
+
+bc:
+  demo_dir: data/demos/world1_3
+  n_actions: 7
+  batch_size: 128
+  lr: 3.0e-4
+  epochs: 30
+  val_frac: 0.15
+  early_stop_patience: 4
+  use_class_weights: false
+  seed: 0
+  device: auto
+  log_dir: logs
