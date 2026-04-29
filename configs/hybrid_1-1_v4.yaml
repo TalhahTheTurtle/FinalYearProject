@@ -1,11 +1,11 @@
-run_name: hybrid_1-3_v2
+run_name: hybrid_1-1_v4
 
-bc_ckpt: logs/bc_1-3/bc_model.pt
-demo_dir: data/demos/world1_3
+bc_ckpt: logs/bc_no_class_weights/bc_model.pt
+demo_dir: data/demos/world1_1
 
 env:
   world: 1
-  stage: 3
+  stage: 1
   version: 0
   action_set: simple
   frame_skip: 4
@@ -21,7 +21,7 @@ env:
 vec_env:
   n_envs: 8
   use_subproc: true
-  base_seed: 77
+  base_seed: 42
 
 warmup:
   n_warmup_steps: 50_000
@@ -39,13 +39,13 @@ ppo:
   policy: CnnPolicy
   policy_kwargs:
     share_features_extractor: true
-  learning_rate: 1.0e-4
+  learning_rate: 2.5e-4
   n_steps: 512
   batch_size: 256
   n_epochs: 4
-  gamma: 0.99
+  gamma: 0.95
   gae_lambda: 0.95
-  clip_range: 0.1
+  clip_range: 0.2
   ent_coef: 0.02
   vf_coef: 0.5
   max_grad_norm: 0.5
@@ -53,7 +53,7 @@ ppo:
 
 train:
   total_timesteps: 2_000_000
-  seed: 77
+  seed: 42
   log_dir: logs
   save_freq: 100_000
   eval_freq: 50_000

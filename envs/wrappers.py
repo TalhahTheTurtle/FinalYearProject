@@ -91,9 +91,17 @@ class EpisodicLifeEnv(gym.Wrapper):
         if self._was_real_done:
             obs = self.env.reset(**kwargs)
         else:
-            # No op step to advance past the death animation
-            obs, _, _, info = self.env.step(0)
-            self._lives = info.get("life", self._lives)
+            # No-op step to advance past the death animation.
+            # On pit/water deaths (e.g. 1-3), nes_py goes directly to a done
+            # state with no steppable animation frames, so fall back to a full
+            # reset if the no-op step raises or itself returns done.
+            try:
+                obs, _, done, info = self.env.step(0)
+                self._lives = info.get("life", self._lives)
+                if done:
+                    obs = self.env.reset(**kwargs)
+            except Exception:
+                obs = self.env.reset(**kwargs)
         self._lives = self.env.unwrapped._life if hasattr(self.env.unwrapped, "_life") else self._lives
         return obs
 

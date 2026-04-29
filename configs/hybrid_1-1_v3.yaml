@@ -1,11 +1,11 @@
-run_name: hybrid_1-3_v2
+run_name: hybrid_1-1_v3
 
-bc_ckpt: logs/bc_1-3/bc_model.pt
-demo_dir: data/demos/world1_3
+bc_ckpt: logs/bc_no_class_weights/bc_model.pt
+demo_dir: data/demos/world1_1
 
 env:
   world: 1
-  stage: 3
+  stage: 1
   version: 0
   action_set: simple
   frame_skip: 4
@@ -21,7 +21,7 @@ env:
 vec_env:
   n_envs: 8
   use_subproc: true
-  base_seed: 77
+  base_seed: 42
 
 warmup:
   n_warmup_steps: 50_000
@@ -53,7 +53,7 @@ ppo:
 
 train:
   total_timesteps: 2_000_000
-  seed: 77
+  seed: 42
   log_dir: logs
   save_freq: 100_000
   eval_freq: 50_000
