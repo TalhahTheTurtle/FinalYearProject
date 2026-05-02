@@ -29,27 +29,23 @@ env:
   reward_shaping: true
   episodic_life: true
   # Tuned for: reaching the flag (primary) + speed (secondary). Score ignored.
-  # flag_bonus dominates the entire episode return (~1500 x_pos reward) so
-  # completing the level is always worth more than any partial-run strategy.
-  # step_penalty discourages the idling/looping that caused the x=1786 stall.
-  # The built-in clock penalty already rewards speed; step_penalty adds to it.
-  flag_bonus: 500.0     # ~10x the episode x_pos reward -- completion always wins
-  step_penalty: 0.1     # per-step idle cost; encourages constant forward progress
-  death_penalty: -15.0  # unchanged
-  stuck_threshold: 30   # steps without x_pos progress before random action override
+  flag_bonus: 500.0     
+  step_penalty: 0.1     
+  death_penalty: -15.0  
+  stuck_threshold: 30   
 
 vec_env:
   n_envs: 8
   use_subproc: true
   base_seed: 42
 
-# ---- BC auxiliary loss ----
+
 bc_aux:
   bc_coef_start: 0.5    # weight at start of training (anchors policy near demos)
   bc_coef_end: 0.02     # weight at end of training   (PPO takes over)
   bc_batch_size: 256    # demo frames sampled per PPO gradient step
 
-# ---- Value-head warmup before PPO ----
+
 warmup:
   n_warmup_steps: 50_000
   rollout_size: 2048
@@ -57,8 +53,8 @@ warmup:
   n_grad_passes_per_rollout: 4
   lr: 1.0e-3
 
-# ---- PPO hyperparameters ----
-# Slightly higher learning rate than the plain hybrid because the BC auxiliary
+
+# Slightly higher learning rate than the plain hybrid because the IL auxiliary
 # loss acts as a regulariser that prevents the policy from drifting too far.
 ppo:
   policy: CnnPolicy

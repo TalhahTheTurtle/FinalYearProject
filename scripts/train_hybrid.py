@@ -1,24 +1,12 @@
 """
-Train BC+PPO hybrid: load BC weights into PPO, then fine-tune with PPO.
+Train IL+PPO hybrid: load IL weights into PPO, then fine-tune with PPO.
 
 Usage:
     python scripts/train_hybrid.py --config configs/hybrid_default.yaml
     python scripts/train_hybrid.py --config configs/hybrid_default.yaml --bc-ckpt logs/bc_no_class_weights/bc_model.pt --run-name hybrid_500k_v1
 
-This is structurally `train_ppo.py` plus one extra step: the BC weight
-transplant happens immediately after the PPO model is constructed, before
-`.learn()`.
 
-Design decisions baked in:
-    1. Same env preprocessing as the PPO baseline. Otherwise comparison is
-       not apples-to-apples.
-    2. Lower default LR than from-scratch PPO (1e-4 instead of 2.5e-4) so
-       PPO doesn't immediately blow up the BC initialisation.
-    3. Lower entropy coefficient than from-scratch PPO. BC starts the policy
-       in a sensible region; we don't need as much exploration noise.
 
-Run the result through scripts/evaluate.py exactly like a from-scratch PPO
-model -- the training pipeline produces a normal SB3 .zip checkpoint.
 """
 from __future__ import annotations
 
