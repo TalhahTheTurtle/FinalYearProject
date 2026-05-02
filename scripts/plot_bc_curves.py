@@ -34,7 +34,7 @@ def main():
     best_epoch = min(history, key=lambda e: e["val_loss"])["epoch"]
 
     fig, (ax_loss, ax_acc) = plt.subplots(1, 2, figsize=(11, 4))
-    fig.suptitle("Behaviour Cloning Training Curves", fontsize=13, fontweight="bold")
+    fig.suptitle("Imitation Learning Training Curves", fontsize=13, fontweight="bold")
 
     # ---- Loss ----
     ax_loss.plot(epochs, train_loss, label="Train loss", color="#4C72B0", linewidth=1.8)

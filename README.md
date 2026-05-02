@@ -1,8 +1,8 @@
 # Super Mario Bros Reinforcement Learning
 
-Final year project — BSc Computer Science, Queen Mary University of London.
+Final year project BSc Computer Science, Queen Mary University of London.
 
-Training a reinforcement learning agent to play **Super Mario Bros** through a combination of Proximal Policy Optimisation (PPO) and Behaviour Cloning (BC). The central research question is whether BC-initialised PPO improves training speed, stability, and final performance compared to PPO trained from scratch.
+Training a reinforcement learning agent to play Super Mario Bros through a combination of Proximal Policy Optimisation (PPO) and Imitation Learning (IL). The central research question is whether IL initialised PPO improves training speed, stability, and final performance compared to PPO trained from scratch.
 
 ## Project structure
 
