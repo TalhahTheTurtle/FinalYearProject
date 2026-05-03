@@ -16,7 +16,7 @@ mario-rl/
 │   ├── bc.py               # Behaviour Cloning (NatureCNN policy, cross-entropy loss)
 │   ├── hybrid_ppo.py       # HybridPPO: SB3 PPO + concurrent BC auxiliary loss
 │   ├── transplant.py       # BC -> PPO weight transplant
-│   ├── value_warmup.py     # Value head warmup after BC transplant
+│   ├── value_warmup.py     # Value head warmup after IL transplant
 │   ├── callbacks.py        # MarioEvalCallback (flag rate, x_pos, time-to-flag)
 │   ├── metrics.py          # Episode metric summarisation
 │   └── utils.py            # Config loading, seeding, metadata
@@ -50,7 +50,7 @@ mario-rl/
 
 ## Install (WSL Ubuntu + NVIDIA GPU)
 
-These instructions assume WSL2 on Windows with an NVIDIA GPU and working CUDA drivers on the Windows host. You should **not** install CUDA inside WSL — only the CUDA-enabled PyTorch wheels.
+These instructions assume WSL2 on Windows with an NVIDIA GPU and working CUDA drivers on the Windows host. You should **not** install CUDA inside WSL only the CUDA enabled PyTorch wheels.
 
 ```bash
 python3 -m venv .venv
@@ -102,7 +102,7 @@ python scripts/train_ppo.py --config configs/ppo_500k_diag.yaml --timesteps 2000
 
 Supports `--resume-from <checkpoint.zip>` to fine-tune from an existing model and `--level 1-3` to override the level without editing the config.
 
-### Behaviour Cloning
+### Imitation Learning
 
 ```bash
 # 1. Record human demos (J=jump, K=run, arrows=move, R=restart, ESC=quit)
@@ -112,7 +112,7 @@ python scripts/record_demo.py --world 1 --stage 1 --out data/demos/world1_1/
 python scripts/train_bc.py --config configs/bc_default.yaml
 ```
 
-### BC + PPO Hybrid
+### IL + PPO Hybrid
 
 Full pipeline: BC weight transplant → value head warmup → PPO with concurrent BC auxiliary loss.
 
@@ -122,46 +122,6 @@ python scripts/train_hybrid_concurrent.py --config configs/hybrid_1-1_v3.yaml
 
 The BC auxiliary loss is annealed linearly from `bc_coef_start` → `bc_coef_end` over training, gradually handing control from demos to PPO.
 
-## Key results
-
-All evaluations use the `best/best_model.zip` checkpoint (best eval return during training), 20 deterministic episodes on 1-1.
-
-| Run | Steps | Flag rate (1-1) | Notes |
-|-----|-------|-----------------|-------|
-| PPO from scratch (`ppo_500k_diag`) | 2M | **100%** | Best performer. Mean 388 frames to flag. |
-| BC+PPO hybrid v2 (`hybrid_v2_nocw_2M`) | 2M | 55% at peak | Collapsed after 500k due to high bc_coef (0.8) anchoring to stuck BC policy |
-| BC alone (`bc_no_class_weights`) | — | 0% | Consistent x=1786 every episode — stuck, no exploration |
-| Fine-tune 1-3 from 1-1 PPO | 3M | 0% | Plateaued at x≈750, gap-jumping not generalised |
-
-### Generalisation (best PPO model evaluated zero-shot)
-
-| Level | Flag rate | Mean x_pos | Note |
-|-------|-----------|------------|------|
-| 1-1 | 75% | ~3000 | Trained level |
-| 1-3 | 0% | ~300 | Same overworld tileset, poor transfer |
-| 1-2 | 0% | ~173 | Underground — complete visual domain shift |
-
-### Key findings so far
-
-- **PPO from scratch beats BC+PPO hybrid on 1-1.** Root cause: the BC model (`bc_no_class_weights`) was deterministically stuck at x=1786. Transplanting it into PPO anchored the policy to a failure mode, and the high BC auxiliary loss coefficient (0.8) prevented PPO from escaping it for over 1M steps.
-- **BC+PPO hybrid can work** — the peak 55% completion rate shows the approach isn't fundamentally broken, just sensitive to BC model quality and the bc_coef schedule.
-- **Visual transfer fails across level types.** The CNN learns pixel patterns specific to the trained level. Overworld → underground (1-2) is a complete failure; overworld → different overworld layout (1-3) is a partial failure.
-- **StuckDetector is necessary.** Without random action injection at stuck x-positions, both BC and hybrid policies loop indefinitely at obstacle points.
-
-## Milestones
-
-| # | Milestone | Status |
-|---|-----------|--------|
-| 1 | Literature review | Done |
-| 2 | Environment setup + preprocessing | Done |
-| 3 | PPO baseline on 1-1 | Done — 100% flag completion |
-| 4 | Demo recording pipeline | Done — 38 eps (1-1), 22 eps (1-3) |
-| 5 | Behaviour cloning | Done |
-| 6 | BC weight transplant + value warmup | Done |
-| 7 | Hybrid BC+PPO training | Done (v2, v3, v4 variants) |
-| 8 | Generalisation evaluation across levels | Done |
-| 9 | Transfer learning (1-1 → 1-3) | In progress |
-| 10 | Final report writeup | Planned |
 
 ## Research questions
 
