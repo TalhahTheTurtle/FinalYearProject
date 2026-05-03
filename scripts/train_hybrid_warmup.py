@@ -1,10 +1,6 @@
 """
-BC + PPO hybrid with value-head warmup.
+il + PPO hybrid with value-head warmup.
 
-Identical to train_hybrid.py except for an extra step between transplant and
-PPO training:
-
-    transplant BC -> warmup value head (frozen policy) -> PPO.learn()
 
 The warmup phase runs ~50k env steps (configurable) where ONLY the value
 head is updated. This gives PPO a critic with sensible value estimates

@@ -2,9 +2,10 @@
 Inspect recorded demo files before training BC.
 
 Usage:
-    python scripts/inspect_demos.py --demo-dir data/demos/world1_1
+python scripts/inspect_demos.py --demo-dir data/demos/world1_1
 
 Reports:
+
     - Per-episode: frames, x_pos, flag_get, score
     - Aggregate: total frames, total minutes of gameplay at 15 Hz
     - Action distribution across all episodes

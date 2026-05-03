@@ -1,4 +1,4 @@
-# BC+PPO hybrid with value-head warmup.
+# IL+PPO hybrid with value-head warmup.
 #
 # Builds on hybrid_500k_v2_gentle.yaml but adds a warmup phase before PPO's
 # main training loop. During warmup, ONLY the value head trains (everything
@@ -29,9 +29,7 @@ vec_env:
   use_subproc: true
   base_seed: 42
 
-# ---- Value-head warmup ----
-# Total env steps to spend warming up the critic with frozen policy.
-# The BC policy collects rollouts; we fit value_net via MSE on returns.
+
 warmup:
   n_warmup_steps: 50_000     # ~5-7 min on a 3060 Ti
   rollout_size: 2048         # env steps per rollout (across all parallel envs)
@@ -39,7 +37,7 @@ warmup:
   n_grad_passes_per_rollout: 4
   lr: 1.0e-3                 # value head only, can be aggressive
 
-# ---- PPO hyperparameters ----
+
 # Slightly less conservative than v2_gentle because the value warmup should
 # now be doing the work of preventing policy drift.
 ppo:

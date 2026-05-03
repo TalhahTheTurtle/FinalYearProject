@@ -13,9 +13,9 @@ mario-rl/
 │   │                       # StuckDetector, LazyFramesToArray
 │   └── make_env.py         # make_env() and make_vec_env()
 ├── agents/
-│   ├── bc.py               # Behaviour Cloning (NatureCNN policy, cross-entropy loss)
+│   ├── bc.py               # IL (NatureCNN policy, cross-entropy loss)
 │   ├── hybrid_ppo.py       # HybridPPO: SB3 PPO + concurrent BC auxiliary loss
-│   ├── transplant.py       # BC -> PPO weight transplant
+│   ├── transplant.py       # IL -> PPO weight transplant
 │   ├── value_warmup.py     # Value head warmup after IL transplant
 │   ├── callbacks.py        # MarioEvalCallback (flag rate, x_pos, time-to-flag)
 │   ├── metrics.py          # Episode metric summarisation
@@ -23,7 +23,7 @@ mario-rl/
 ├── scripts/
 │   ├── train_ppo.py        # PPO training (supports --resume-from, --level)
 │   ├── train_bc.py         # Behaviour cloning training
-│   ├── train_hybrid_concurrent.py  # Full BC+PPO hybrid pipeline
+│   ├── train_hybrid_concurrent.py  # Full IL+PPO hybrid pipeline
 │   ├── evaluate.py         # Multi-level evaluation -> CSV
 │   ├── record_demo.py      # Human gameplay recorder (pygame)
 │   ├── record_run.py       # Agent video recorder -> MP4
@@ -32,12 +32,12 @@ mario-rl/
 ├── configs/
 │   ├── ppo_default.yaml           # PPO baseline
 │   ├── ppo_500k_diag.yaml         # PPO diagnostic (best performer: 100% on 1-1)
-│   ├── bc_default.yaml            # BC training for 1-1
-│   ├── bc_1-3.yaml                # BC training for 1-3
-│   ├── hybrid_concurrent_v2.yaml  # BC+PPO hybrid v2 (bc_coef 0.8, lr 5e-5)
-│   ├── hybrid_1-1_v3.yaml         # BC+PPO hybrid v3 (bc_coef 0.5, lr 1e-4, ent 0.02)
-│   ├── hybrid_1-1_v4.yaml         # BC+PPO hybrid v4 (PPO hyperparams + BC aux loss)
-│   ├── hybrid_1-3.yaml            # BC+PPO hybrid on 1-3
+│   ├── bc_default.yaml            # IL training for 1-1
+│   ├── bc_1-3.yaml                # IL training for 1-3
+│   ├── hybrid_concurrent_v2.yaml  # IL+PPO hybrid v2 (bc_coef 0.8, lr 5e-5)
+│   ├── hybrid_1-1_v3.yaml         # IL+PPO hybrid v3 (bc_coef 0.5, lr 1e-4, ent 0.02)
+│   ├── hybrid_1-1_v4.yaml         # IL+PPO hybrid v4 (PPO hyperparams + IL aux loss)
+│   ├── hybrid_1-3.yaml            # IL+PPO hybrid on 1-3
 │   ├── finetune_1-3.yaml          # PPO fine-tune from 1-1 weights to 1-3
 │   └── _archive/                  # Earlier config iterations
 ├── data/demos/
@@ -108,27 +108,27 @@ Supports `--resume-from <checkpoint.zip>` to fine-tune from an existing model an
 # 1. Record human demos (J=jump, K=run, arrows=move, R=restart, ESC=quit)
 python scripts/record_demo.py --world 1 --stage 1 --out data/demos/world1_1/
 
-# 2. Train BC model
+# 2. Train IL model
 python scripts/train_bc.py --config configs/bc_default.yaml
 ```
 
 ### IL + PPO Hybrid
 
-Full pipeline: BC weight transplant → value head warmup → PPO with concurrent BC auxiliary loss.
+Full pipeline: IL weight transplant → value head warmup → PPO with concurrent IL auxiliary loss.
 
 ```bash
 python scripts/train_hybrid_concurrent.py --config configs/hybrid_1-1_v3.yaml
 ```
 
-The BC auxiliary loss is annealed linearly from `bc_coef_start` → `bc_coef_end` over training, gradually handing control from demos to PPO.
+The IL auxiliary loss is annealed linearly from `bc_coef_start` → `bc_coef_end` over training, gradually handing control from demos to PPO.
 
 
 ## Research questions
 
-1. Does BC initialisation improve PPO's sample efficiency on Super Mario Bros?
-2. Does BC initialisation reduce training variance?
-3. How does BC model quality (stuck vs completing) affect hybrid training?
-4. Does visual transfer across levels improve with a shared BC+PPO foundation?
+1. Does IL initialisation improve PPO's sample efficiency on Super Mario Bros?
+2. Does IL initialisation reduce training variance?
+3. How does IL model quality (stuck vs completing) affect hybrid training?
+4. Does visual transfer across levels improve with a shared IL+PPO foundation?
 
 ## License
 

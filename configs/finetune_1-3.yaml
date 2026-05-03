@@ -22,13 +22,13 @@ vec_env:
 
 ppo:
   policy: CnnPolicy
-  learning_rate: 2.5e-5   # 10x lower than default -- preserves features learned on 1-1
+  learning_rate: 2.5e-5   # 10x lower than default preserves features learned on 1-1
   n_steps: 512
   batch_size: 256
   n_epochs: 4
   gamma: 0.9
   gae_lambda: 0.95
-  clip_range: 0.1          # tighter clip -- smaller policy updates during fine-tuning
+  clip_range: 0.1          # tighter clip smaller policy updates during fine-tuning
   ent_coef: 0.02
   vf_coef: 0.5
   max_grad_norm: 0.5

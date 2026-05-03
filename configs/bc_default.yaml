@@ -1,10 +1,10 @@
-# Default Behaviour Cloning config.
+# Default IL config.
 #
-# Reads demos from data/demos/world1_1/ (the default path of record_demo.py)
+# Reads demos from data/demos/world1_1/ 
 # and produces a policy that mimics human play.
 #
 # Run with:
-#   python scripts/train_bc.py --config configs/bc_default.yaml
+#  python scripts/train_bc.py --config configs/bc_default.yaml
 
 run_name: bc_default
 

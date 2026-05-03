@@ -1,15 +1,12 @@
 """
-BC + PPO concurrent training (the full pipeline).
+IL + PPO concurrent training (the full pipeline).
 
-Pipeline:
-    1. Build HybridPPO (PPO + concurrent BC auxiliary loss).
-    2. Transplant BC weights from a pre-trained checkpoint.
-    3. Warm up the value head with the policy frozen.
-    4. Call model.learn() -- BC loss fires on every gradient step throughout.
 
-The BC auxiliary loss is annealed linearly from bc_coef_start to bc_coef_end
-over the course of training, so the policy gradually transitions from
-"stay near demos" to "explore freely with PPO".
+1. Build HybridPPO (PPO + concurrent IL auxiliary loss).
+2. Transplant IL weights from a pre-trained checkpoint.
+3. Warm up the value head with the policy frozen.
+4. Call model.learn() -- IL loss fires on every gradient step throughout.
+
 
 Usage:
     python scripts/train_hybrid_concurrent.py

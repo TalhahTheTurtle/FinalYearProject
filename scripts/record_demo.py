@@ -1,35 +1,15 @@
 """
-Record human gameplay of Super Mario Bros for behaviour cloning.
+Record human gameplay of Super Mario Bros for IL.
 
 Controls:
     Arrow keys or WASD : move left / right, duck, look up
-    J                  : A button (jump)
-    K                  : B button (run / fireball)
-    ESC                : quit recording session
-    R                  : discard current episode and restart
-    P                  : pause/unpause
-    Enter              : manually end current episode (as if died)
+    J : A button (jump)
+    K : B button (run / fireball)
+    ESC: quit recording session
+    R : discard current episode and restart
+    P : pause/unpause
+    Enter: manually end current episode (as if died)
 
-Recording is state-action aligned by construction: the env advances one
-step per on-screen frame, and we record the action that was held at that
-step, alongside the observation the agent WOULD see (post-preprocessing).
-
-Output: one .npz file per completed episode in data/demos/, each containing:
-    observations : (T, 4, 84, 84) uint8     - post-preprocessing obs
-    actions      : (T,) int                 - action indices
-    rewards      : (T,) float32             - per-step reward
-    dones        : (T,) bool                - terminal flags
-    final_info   : dict (saved separately)  - x_pos, flag_get, score, life
-
-IMPORTANT:
-    - Recording uses the SAME env wrapper stack as training. The action
-      space is SIMPLE_MOVEMENT (7 discrete actions). Your keyboard input
-      is mapped to the closest matching discrete action each frame.
-    - Frame-skip is 4, so the emulator's raw FPS is effectively 15 Hz as
-      seen by the agent. The preview window renders at the wrapped
-      decision rate, which feels slow but is correct.
-    - Use P to pause whenever you need to. Do NOT alt-tab mid-episode --
-      you'll lose focus and input won't register.
 
 Usage:
     python scripts/record_demo.py --world 1 --stage 1
@@ -57,18 +37,7 @@ from envs import make_env
 from gym_super_mario_bros.actions import SIMPLE_MOVEMENT
 
 
-# ---------------------------------------------------------------------------
-# Keyboard -> action mapping
-# ---------------------------------------------------------------------------
-# SIMPLE_MOVEMENT is 7 discrete actions:
-#   0  NOOP
-#   1  right
-#   2  right + A       (right + jump)
-#   3  right + B       (right + run)
-#   4  right + A + B   (right + jump + run)
-#   5  A               (jump in place)
-#   6  left
-#
+
 # Given the keys held this frame, pick the best matching action.
 # Priorities: (right > left), (A = jump), (B = run).
 def keys_to_action(right: bool, left: bool, a_btn: bool, b_btn: bool) -> int:

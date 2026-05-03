@@ -1,4 +1,4 @@
-# BC + PPO concurrent training -- v2
+# IL + PPO concurrent training v2
 #
 # Changes from v1:
 #   - step_penalty removed (was causing oscillation: long episodes got penalised,
@@ -26,7 +26,7 @@ env:
   reward_shaping: true
   episodic_life: true
   flag_bonus: 500.0     # level completion always dominates
-  step_penalty: 0.0     # removed -- was causing policy to prefer dying over moving
+  step_penalty: 0.0     # removed  was causing policy to prefer dying over moving
   death_penalty: -15.0
   stuck_threshold: 30   # steps without x_pos progress before random action override
 
@@ -35,13 +35,13 @@ vec_env:
   use_subproc: true
   base_seed: 42
 
-# ---- BC auxiliary loss ----
+
 bc_aux:
-  bc_coef_start: 0.8    # stronger anchoring early -- keeps policy near demos longer
+  bc_coef_start: 0.8    # stronger anchoring early keeps policy near demos longer
   bc_coef_end: 0.02
   bc_batch_size: 256
 
-# ---- Value-head warmup before PPO ----
+
 warmup:
   n_warmup_steps: 50_000
   rollout_size: 2048
@@ -49,19 +49,19 @@ warmup:
   n_grad_passes_per_rollout: 4
   lr: 1.0e-3
 
-# ---- PPO hyperparameters ----
+
 ppo:
   policy: CnnPolicy
   policy_kwargs:
     share_features_extractor: true
-  learning_rate: 5.0e-5  # halved from v1 -- reduces oscillation
+  learning_rate: 5.0e-5  # halved from v1  reduces oscillation
   n_steps: 512
   batch_size: 256
   n_epochs: 4
   gamma: 0.99
   gae_lambda: 0.95
   clip_range: 0.15
-  ent_coef: 0.05         # raised -- need more exploration to push past stall
+  ent_coef: 0.05         # raised need more exploration to push past stall
   vf_coef: 0.5
   max_grad_norm: 0.5
   verbose: 1

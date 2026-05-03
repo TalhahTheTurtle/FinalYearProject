@@ -1,22 +1,18 @@
-# BC + PPO hybrid training config.
+# IL + PPO hybrid training config.
 #
-# Built to match ppo_500k_diag.yaml's env settings exactly so that hybrid vs
-# from-scratch comparison is apples-to-apples. The PPO hyperparameters are
-# slightly more conservative because we are *fine-tuning* a pretrained policy,
-# not exploring from scratch.
+# Built to match ppo_500k_diag.yaml's env settings exactly
 #
 # Key differences vs ppo_500k_diag.yaml:
-#   - lr: 2.5e-4 -> 1.0e-4    (don't blow up BC init)
-#   - ent_coef: 0.02 -> 0.005 (BC starts in a sensible region; less noise needed)
-#   - clip_range: 0.2 -> 0.1  (smaller policy updates around BC starting point)
+#   - lr: 2.5e-4 -> 1.0e-4    (don't blow up IL init)
+#   - ent_coef: 0.02 -> 0.005 (IL starts in a sensible region less noise needed)
+#   - clip_range: 0.2 -> 0.1  (smaller policy updates around IL starting point)
 #
 # bc_ckpt is required. Override via CLI:
 #   python scripts/train_hybrid.py --bc-ckpt logs/bc_no_class_weights/bc_model.pt
 
 run_name: hybrid_500k_v2_gentle
 
-# Path (absolute or relative to project root) to the BC .pt checkpoint to
-# transplant. You will likely override this on the CLI.
+
 bc_ckpt: logs/bc_no_class_weights/bc_model.pt
 
 env:
@@ -39,14 +35,14 @@ ppo:
   policy: CnnPolicy
   policy_kwargs:
     share_features_extractor: true
-  learning_rate: 3.0e-5    # was 2.5e-4 -- gentler updates around BC init
+  learning_rate: 3.0e-5    # was 2.5e-4 gentler updates around il init
   n_steps: 512
   batch_size: 256
   n_epochs: 4
   gamma: 0.95
   gae_lambda: 0.95
-  clip_range: 0.05          # was 0.2 -- smaller policy moves
-  ent_coef: 0.001          # was 0.02 -- BC already gives directed behaviour
+  clip_range: 0.05          # was 0.2 smaller policy moves
+  ent_coef: 0.001          # was 0.02  IL already gives directed behaviour
   vf_coef: 1.0
   max_grad_norm: 0.5
   verbose: 1

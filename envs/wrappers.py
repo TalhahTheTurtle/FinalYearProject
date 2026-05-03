@@ -33,7 +33,6 @@ class SkipFrame(gym.Wrapper):
     so a single frame can drop enemies/items. 
     Max-pooling the last two frames
     of the skip window avoids that.
-
     Rewards are summed across the skipped frames so no reward signal is lost.
     """
 

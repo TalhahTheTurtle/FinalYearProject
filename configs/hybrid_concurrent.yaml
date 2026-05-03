@@ -1,12 +1,12 @@
-# BC + PPO concurrent training config.
+# IL + PPO concurrent training config.
 #
 # Full pipeline:
-#   1. HybridPPO is built with a BC auxiliary loss (fires every gradient step).
-#   2. BC weights are transplanted from a pre-trained checkpoint.
+#   1. HybridPPO is built with a IL auxiliary loss (fires every gradient step).
+#   2.IL weights are transplanted from a pre-trained checkpoint.
 #   3. Value head is warmed up (policy frozen, critic trained on returns).
-#   4. PPO trains -- every gradient update includes the annealed BC loss.
+#   4. PPO trains -- every gradient update includes the annealed IL loss.
 #
-# The BC auxiliary loss starts at bc_coef_start (high, keeps policy near demos)
+# The IL auxiliary loss starts at bc_coef_start (high, keeps policy near demos)
 # and decays linearly to bc_coef_end (low, lets PPO take over).
 #
 # Run:
@@ -64,7 +64,7 @@ ppo:
   n_steps: 512
   batch_size: 256
   n_epochs: 4
-  gamma: 0.99           # higher than prev -- flag reward is far in the future, needs long horizon
+  gamma: 0.99           # higher than prev flag reward is far in the future, needs long horizon
   gae_lambda: 0.95
   clip_range: 0.15
   ent_coef: 0.03        # higher entropy = more exploration past the x=1786 stall
@@ -73,7 +73,7 @@ ppo:
   verbose: 1
 
 train:
-  total_timesteps: 1_000_000   # 1M -- longer run to let PPO explore past demo behavior
+  total_timesteps: 1_000_000   
   seed: 42
   log_dir: logs
   save_freq: 100_000

@@ -1,8 +1,8 @@
 """
-Evaluate a trained Behaviour Cloning policy.
+Evaluate a trained  policy.
 
 Identical output format to scripts/evaluate.py so you can directly compare:
-    BC-only vs PPO-from-scratch vs BC+PPO-hybrid
+    IL only vs PPO from scratch vs IL+PPO hybrid
 
 Usage:
     python scripts/play_bc.py --run-dir logs/bc_default --episodes 20

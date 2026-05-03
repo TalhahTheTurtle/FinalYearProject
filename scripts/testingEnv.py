@@ -1,8 +1,15 @@
+
+
+import argparse
+import sys
+from pathlib import Path
+
+import numpy as np
+
+
 """
 running a random agent for one episode and save a GIF
-
-This is Step 0 of my project. Before we do any learning algorithm
-we verify that:
+I verify that:
 1. The Mario env installs and loads
 
 2. The wrapper pipeline produces the expected observation shape
@@ -14,12 +21,6 @@ python scripts/testingEnv.py --world 1 --stage 1
 
 testing script, this should work
 """
-
-import argparse
-import sys
-from pathlib import Path
-
-import numpy as np
 
 # Make the project importable when running the script directly
 ROOT = Path(__file__).resolve().parent.parent
@@ -54,7 +55,7 @@ def main():
     assert obs.dtype == np.uint8, f"Unexpected obs dtype: {obs.dtype}"
     assert obs.ndim == 3, f"Expected 3D obs (stack, H, W), got {obs.shape}"
 
-    # For the GIF we need raw RGB frames; the wrapped env returns preprocessed.
+    # For the GIF need raw RGB frames, the wrapped env returns preprocessed.
     # We access the underlying render() method which still returns the original.
     frames = []
     total_reward = 0.0

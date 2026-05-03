@@ -2,9 +2,9 @@
 Smoke test for PPO training.
 
 Runs PPO for 10,000 env steps (~1-2 minutes on a 3060 Ti) to verify that the
-entire training pipeline works before you kick off a real 200k / 1M / 4M run.
+entire training pipeline works before you kick off a longer run.
 
-What this catches:
+checks for  :
     - Import errors
     - Env construction failures
     - Observation-space / action-space mismatch with the policy
@@ -12,10 +12,8 @@ What this catches:
     - Logger / TensorBoard misconfiguration
     - Eval callback errors
 
-What this does NOT tell you:
-    - Whether PPO actually learns (too short). For that, run the 200k config.
 
-Usage:
+how to run:
     python scripts/smoke_test_ppo.py
 """
 from __future__ import annotations

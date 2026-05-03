@@ -2,17 +2,17 @@
 Evaluate a trained PPO agent and produce a metrics CSV.
 
 Usage:
-    # Evaluate best model on the level it was trained on
-    python scripts/evaluate.py --run-dir logs/ppo_default
+# Evaluate best model on the level it was trained on
+python scripts/evaluate.py --run-dir logs/ppo_default
 
-    # Evaluate on several levels (generalisation test)
-    python scripts/evaluate.py --run-dir logs/ppo_default --levels 1-1 1-2 1-3 1-4
+# Evaluate on several levels (generalisation test)
+python scripts/evaluate.py --run-dir logs/ppo_default --levels 1-1 1-2 1-3 1-4
 
-    # Use the final model instead of best
-    python scripts/evaluate.py --run-dir logs/ppo_default --model final_model.zip
+# Use the final model instead of best
+python scripts/evaluate.py --run-dir logs/ppo_default --model final_model.zip
 
 The CSV records one row per episode with:
-    level, episode, reward, length, flag_get, final_x_pos, final_score
+level, episode, reward, length, flag_get, final_x_pos, final_score
 """
 from __future__ import annotations
 
@@ -31,7 +31,7 @@ from agents.utils import load_config
 
 
 def parse_levels(level_strs: list[str]) -> list[tuple[int, int]]:
-    """Parse ['1-1', '1-2', ...] into [(1, 1), (1, 2), ...]."""
+    #Parse ['1-1', '1-2', ...] into [(1, 1), (1, 2), ...]
     out = []
     for s in level_strs:
         parts = s.split("-")

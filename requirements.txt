@@ -28,8 +28,6 @@ pandas==2.2.1
 imageio==2.34.0
 imageio-ffmpeg==0.4.9
 
-# Optional: experiment tracking (comment out if you don't want a W&B account)
-# wandb==0.16.4
 
 # Dev
 pytest==8.1.1

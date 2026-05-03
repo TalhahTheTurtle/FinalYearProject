@@ -7,12 +7,6 @@ Usage:
 Saves:
     <run-dir>/videos/episode_0.mp4, episode_1.mp4, ...
 
-Useful for:
-    - Sanity checking that your agent does what you think it does
-    - Putting clips in the final report
-    - Comparing behaviours across different training stages
-
-Requires imageio-ffmpeg (already in requirements.txt).
 """
 from __future__ import annotations
 

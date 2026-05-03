@@ -1,5 +1,5 @@
 """
-Plot BC training curves (loss and accuracy) from a history.json file.
+Plot IL training curves (loss and accuracy) from a history.json file.
 
 Usage:
     python scripts/plot_bc_curves.py --history logs/bc_no_class_weights/history.json
